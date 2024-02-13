@@ -1,4 +1,6 @@
 pub mod algorithm;
+use crate::prelude::*;
+use std::fs;
 
 /// The representation of a misspelling in the text. The start and end represent the positions in
 /// the main buffer at which the word starts and ends.
@@ -52,11 +54,20 @@ pub struct Spellchecker {
 }
 
 impl Spellchecker {
-    pub fn new(dict: Vec<String>) -> Self {
-        Spellchecker {
+    pub fn new() -> Result<Self> {
+        let dict_path = crate::get_program_files_path().join("dict.txt");
+
+        let dict_content = fs::read(dict_path)?;
+        let dict: Vec<String> = String::from_utf8_lossy(&dict_content)
+            .into_owned()
+            .lines()
+            .map(|word| word.trim().to_string())
+            .collect();
+
+        Ok(Spellchecker {
             dict,
             misspellings: Vec::new(),
-        }
+        })
     }
 
     pub fn set_dict(&mut self, dict: Vec<String>) {

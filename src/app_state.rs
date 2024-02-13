@@ -25,14 +25,14 @@ impl Default for AppState {
 }
 
 impl AppState {
-    pub fn new(file_path: PathBuf, file_buffer: String) -> Self {
+    pub fn new(file_path: PathBuf, file_buffer: String) -> Result<Self> {
         let file_path = canonicalize(file_path).unwrap(); // make sure that it's the full path
-        Self {
+        Ok(Self {
             file_path,
             file_buffer,
             quit_flag: false,
-            spellchecker: Spellchecker::default(),
-        }
+            spellchecker: Spellchecker::new()?,
+        })
     }
 
     pub fn write_buffer(&self) -> Result<()> {

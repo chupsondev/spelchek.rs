@@ -61,8 +61,7 @@ pub fn run(config: &Config) -> Result<()> {
 
     let path = config.get_spellchecked_file_path().clone();
     let file_contents: String = String::from_utf8_lossy(&fs::read(&path)?).to_string();
-    let mut app = AppState::new(path, file_contents);
-    app.initalise_spellchecker()?;
+    let mut app = AppState::new(path, file_contents)?;
     app.check_spelling();
 
     while !app.should_quit() {
