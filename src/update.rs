@@ -29,9 +29,29 @@ fn get_key_event() -> Result<Option<KeyEvent>> {
 
 fn quit(key_event: &KeyEvent) -> bool {
     match key_event.code {
-        KeyCode::Char(c) if c == 'q' || c == 'Q' => true,
+        KeyCode::Char(c) if (c == 'q' || c == 'Q') && key_event.modifiers.is_empty() => {
+            true
+        }
         KeyCode::Char('c') if key_event.modifiers == KeyModifiers::CONTROL => true,
         KeyCode::Char('d') if key_event.modifiers == KeyModifiers::CONTROL => true,
         _ => false,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_quit_check() {
+        assert!(quit(&KeyEvent::new(KeyCode::Char('a'), KeyModifiers::NONE)) == false);
+        assert!(quit(&KeyEvent::new(KeyCode::Char('y'), KeyModifiers::NONE)) == false);
+        assert!(quit(&KeyEvent::new(KeyCode::Char('q'), KeyModifiers::NONE)) == true);
+        assert!(quit(&KeyEvent::new(KeyCode::Char('q'), KeyModifiers::CONTROL)) == false);
+        assert!(quit(&KeyEvent::new(KeyCode::Char('Q'), KeyModifiers::NONE)) == true);
+        assert!(quit(&KeyEvent::new(KeyCode::Char('c'), KeyModifiers::CONTROL)) == true);
+        assert!(quit(&KeyEvent::new(KeyCode::Char('c'), KeyModifiers::NONE)) == false);
+        assert!(quit(&KeyEvent::new(KeyCode::Char('d'), KeyModifiers::CONTROL)) == true);
+        assert!(quit(&KeyEvent::new(KeyCode::Char('d'), KeyModifiers::SHIFT)) == false);
     }
 }
