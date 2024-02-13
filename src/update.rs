@@ -44,14 +44,14 @@ mod tests {
 
     #[test]
     fn test_quit_check() {
-        assert!(quit(&KeyEvent::new(KeyCode::Char('a'), KeyModifiers::NONE)) == false);
-        assert!(quit(&KeyEvent::new(KeyCode::Char('y'), KeyModifiers::NONE)) == false);
-        assert!(quit(&KeyEvent::new(KeyCode::Char('q'), KeyModifiers::NONE)) == true);
-        assert!(quit(&KeyEvent::new(KeyCode::Char('q'), KeyModifiers::CONTROL)) == false);
-        assert!(quit(&KeyEvent::new(KeyCode::Char('Q'), KeyModifiers::NONE)) == true);
-        assert!(quit(&KeyEvent::new(KeyCode::Char('c'), KeyModifiers::CONTROL)) == true);
-        assert!(quit(&KeyEvent::new(KeyCode::Char('c'), KeyModifiers::NONE)) == false);
-        assert!(quit(&KeyEvent::new(KeyCode::Char('d'), KeyModifiers::CONTROL)) == true);
-        assert!(quit(&KeyEvent::new(KeyCode::Char('d'), KeyModifiers::SHIFT)) == false);
+        assert!(!quit(&KeyEvent::new(KeyCode::Char('a'), KeyModifiers::NONE)));
+        assert!(!quit(&KeyEvent::new(KeyCode::Char('y'), KeyModifiers::NONE)));
+        assert!(quit(&KeyEvent::new(KeyCode::Char('q'), KeyModifiers::NONE)));
+        assert!(!quit(&KeyEvent::new(KeyCode::Char('q'), KeyModifiers::CONTROL)));
+        assert!(quit(&KeyEvent::new(KeyCode::Char('Q'), KeyModifiers::NONE)));
+        assert!(quit(&KeyEvent::new(KeyCode::Char('c'), KeyModifiers::CONTROL)));
+        assert!(!quit(&KeyEvent::new(KeyCode::Char('c'), KeyModifiers::NONE)));
+        assert!(quit(&KeyEvent::new(KeyCode::Char('d'), KeyModifiers::CONTROL)));
+        assert!(!quit(&KeyEvent::new(KeyCode::Char('d'), KeyModifiers::SHIFT)));
     }
 }
