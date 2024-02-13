@@ -1,10 +1,16 @@
-use crate::prelude::*;
-use std::{fs, fs::canonicalize, path::PathBuf};
+use crate::{prelude::*, spellchecker};
+use crate::spellchecker::Spellchecker;
+use std::{
+    fs,
+    fs::canonicalize,
+    path::PathBuf,
+};
 
 pub struct AppState {
     file_path: PathBuf,
     file_buffer: String,
     quit_flag: bool,
+    spellchecker: Spellchecker,
 }
 
 impl Default for AppState {
@@ -13,6 +19,7 @@ impl Default for AppState {
             file_path: PathBuf::new(),
             file_buffer: String::new(),
             quit_flag: false,
+            spellchecker: Spellchecker::default(),
         }
     }
 }
@@ -24,6 +31,7 @@ impl AppState {
             file_path,
             file_buffer,
             quit_flag: false,
+            spellchecker: Spellchecker::default(),
         }
     }
 
@@ -42,5 +50,27 @@ impl AppState {
 
     pub fn quit(&mut self) {
         self.quit_flag = true;
+    }
+
+    pub fn initalise_spellchecker(&mut self) -> Result<()> {
+        let dict_path = crate::get_program_files_path().join("dict.txt");
+
+        let dict_content = fs::read(dict_path)?;
+        let dict: Vec<String> = String::from_utf8_lossy(&dict_content)
+            .into_owned()
+            .lines()
+            .map(|word| word.trim().to_string())
+            .collect();
+
+        self.spellchecker.set_dict(dict);
+        Ok(())
+    }
+
+    pub fn check_spelling(&mut self) {
+        self.spellchecker.check(&self.file_buffer);
+    }
+
+    pub fn misspellings(&mut self) -> &mut Vec<spellchecker::Misspelling> {
+        self.spellchecker.misspellings()
     }
 }

@@ -22,7 +22,7 @@ use std::io::{self, Write};
 
 use std::fs::{self, canonicalize};
 use std::panic;
-use std::path::PathBuf;
+use std::path::{PathBuf, Path};
 
 pub struct Config {
     spellchecked_file_path: PathBuf,
@@ -49,6 +49,11 @@ impl Config {
     }
 }
 
+pub fn get_program_files_path() -> PathBuf {
+    Path::new(&home::home_dir().unwrap()).join(".spelchek")
+}
+
+
 pub fn run(config: &Config) -> Result<()> {
     let mut terminal = start_terminal()?;
 
@@ -57,6 +62,8 @@ pub fn run(config: &Config) -> Result<()> {
     let path = config.get_spellchecked_file_path().clone();
     let file_contents: String = String::from_utf8_lossy(&fs::read(&path)?).to_string();
     let mut app = AppState::new(path, file_contents);
+    app.initalise_spellchecker()?;
+    app.check_spelling();
 
     while !app.should_quit() {
         terminal.draw(|frame| render::render(frame, &mut app))?;
@@ -89,5 +96,5 @@ fn initialize_panic_hook() {
     panic::set_hook(Box::new(move |panic_info| {
         close_terminal().unwrap();
         original_hook(panic_info);
-    }))
+    }));
 }

@@ -1,7 +1,9 @@
 use crate::app_state::AppState;
 
+use ratatui::style::Color;
 use ratatui::layout::{Constraint, Direction, Layout};
-use ratatui::widgets::{Block, Borders, Paragraph};
+use ratatui::style::Style;
+use ratatui::widgets::{Block, Borders, List, Paragraph};
 use ratatui::Frame;
 
 pub fn render(frame: &mut Frame, app: &mut AppState) {
@@ -14,12 +16,19 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
     );
 
     frame.render_widget(
-        Block::new().title("Misspelled words").borders(Borders::ALL),
+        app.misspellings()
+            .iter()
+            .map(|f| f.get_word().clone())
+            .collect::<List>()
+            .block(Block::new().title("Misspellings").borders(Borders::ALL))
+            .highlight_style(Style::default().fg(Color::Blue)),
         layout_fields[0],
     );
 
     frame.render_widget(
-        Block::new().title("Correction suggestions").borders(Borders::ALL),
+        Block::new()
+            .title("Correction suggestions")
+            .borders(Borders::ALL),
         layout_fields[2],
     );
 }
