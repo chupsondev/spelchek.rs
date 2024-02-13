@@ -68,7 +68,7 @@ impl Spellchecker {
         let mut start_pos: usize = 0;
         for (i, c) in buffer.chars().enumerate() {
             if !c.is_alphabetic() {
-                if word_buf.is_empty() {
+                if !word_buf.is_empty() {
                     self.check_word_and_add(&word_buf, (start_pos, i));
                 }
 
