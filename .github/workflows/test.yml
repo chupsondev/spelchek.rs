@@ -18,6 +18,7 @@ jobs:
     - uses: actions/checkout@v3
     - name: Build
       run: cargo build --verbose
-      run: make
+    - name: Copy dictionary
+      run: make dict
     - name: Run tests
       run: cargo test --verbose
