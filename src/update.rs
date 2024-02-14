@@ -29,9 +29,7 @@ fn get_key_event() -> Result<Option<KeyEvent>> {
 
 fn quit(key_event: &KeyEvent) -> bool {
     match key_event.code {
-        KeyCode::Char(c) if (c == 'q' || c == 'Q') && key_event.modifiers.is_empty() => {
-            true
-        }
+        KeyCode::Char(c) if (c == 'q' || c == 'Q') && key_event.modifiers.is_empty() => true,
         KeyCode::Char('c') if key_event.modifiers == KeyModifiers::CONTROL => true,
         KeyCode::Char('d') if key_event.modifiers == KeyModifiers::CONTROL => true,
         _ => false,
@@ -44,14 +42,35 @@ mod tests {
 
     #[test]
     fn test_quit_check() {
-        assert!(!quit(&KeyEvent::new(KeyCode::Char('a'), KeyModifiers::NONE)));
-        assert!(!quit(&KeyEvent::new(KeyCode::Char('y'), KeyModifiers::NONE)));
+        assert!(!quit(&KeyEvent::new(
+            KeyCode::Char('a'),
+            KeyModifiers::NONE
+        )));
+        assert!(!quit(&KeyEvent::new(
+            KeyCode::Char('y'),
+            KeyModifiers::NONE
+        )));
         assert!(quit(&KeyEvent::new(KeyCode::Char('q'), KeyModifiers::NONE)));
-        assert!(!quit(&KeyEvent::new(KeyCode::Char('q'), KeyModifiers::CONTROL)));
+        assert!(!quit(&KeyEvent::new(
+            KeyCode::Char('q'),
+            KeyModifiers::CONTROL
+        )));
         assert!(quit(&KeyEvent::new(KeyCode::Char('Q'), KeyModifiers::NONE)));
-        assert!(quit(&KeyEvent::new(KeyCode::Char('c'), KeyModifiers::CONTROL)));
-        assert!(!quit(&KeyEvent::new(KeyCode::Char('c'), KeyModifiers::NONE)));
-        assert!(quit(&KeyEvent::new(KeyCode::Char('d'), KeyModifiers::CONTROL)));
-        assert!(!quit(&KeyEvent::new(KeyCode::Char('d'), KeyModifiers::SHIFT)));
+        assert!(quit(&KeyEvent::new(
+            KeyCode::Char('c'),
+            KeyModifiers::CONTROL
+        )));
+        assert!(!quit(&KeyEvent::new(
+            KeyCode::Char('c'),
+            KeyModifiers::NONE
+        )));
+        assert!(quit(&KeyEvent::new(
+            KeyCode::Char('d'),
+            KeyModifiers::CONTROL
+        )));
+        assert!(!quit(&KeyEvent::new(
+            KeyCode::Char('d'),
+            KeyModifiers::SHIFT
+        )));
     }
 }

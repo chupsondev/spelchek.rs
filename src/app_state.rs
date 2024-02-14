@@ -1,10 +1,6 @@
-use crate::{prelude::*, spellchecker};
 use crate::spellchecker::Spellchecker;
-use std::{
-    fs,
-    fs::canonicalize,
-    path::PathBuf,
-};
+use crate::{prelude::*, spellchecker};
+use std::{fs, fs::canonicalize, path::PathBuf};
 
 pub struct AppState {
     file_path: PathBuf,

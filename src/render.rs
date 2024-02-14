@@ -1,7 +1,7 @@
 use crate::app_state::AppState;
 
-use ratatui::style::Color;
 use ratatui::layout::{Constraint, Direction, Layout};
+use ratatui::style::Color;
 use ratatui::style::Style;
 use ratatui::widgets::{Block, Borders, List, Paragraph};
 use ratatui::Frame;

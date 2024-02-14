@@ -22,7 +22,7 @@ use std::io::{self, Write};
 
 use std::fs::{self, canonicalize};
 use std::panic;
-use std::path::{PathBuf, Path};
+use std::path::{Path, PathBuf};
 
 pub struct Config {
     spellchecked_file_path: PathBuf,
@@ -52,7 +52,6 @@ impl Config {
 pub fn get_program_files_path() -> PathBuf {
     Path::new(&home::home_dir().unwrap()).join(".spelchek")
 }
-
 
 pub fn run(config: &Config) -> Result<()> {
     let mut terminal = start_terminal()?;

@@ -36,7 +36,7 @@ pub fn is_word_correct(word: &str, dict: &Vec<String>) -> bool {
         return false;
     }
 
-   search_for_word(word, dict).is_some()
+    search_for_word(word, dict).is_some()
 }
 
 #[cfg(test)]
