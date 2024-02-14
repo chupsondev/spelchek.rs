@@ -70,10 +70,6 @@ impl Spellchecker {
         })
     }
 
-    pub fn set_dict(&mut self, dict: Vec<String>) {
-        self.dict = dict.clone();
-    }
-
     pub fn check(&mut self, buffer: &str) {
         let mut word_buf: String = String::new();
         let mut start_pos: usize = 0;

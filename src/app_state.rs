@@ -52,20 +52,6 @@ impl AppState {
         self.quit_flag = true;
     }
 
-    pub fn initalise_spellchecker(&mut self) -> Result<()> {
-        let dict_path = crate::get_program_files_path().join("dict.txt");
-
-        let dict_content = fs::read(dict_path)?;
-        let dict: Vec<String> = String::from_utf8_lossy(&dict_content)
-            .into_owned()
-            .lines()
-            .map(|word| word.trim().to_string())
-            .collect();
-
-        self.spellchecker.set_dict(dict);
-        Ok(())
-    }
-
     pub fn check_spelling(&mut self) {
         self.spellchecker.check(&self.file_buffer);
     }
