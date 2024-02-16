@@ -16,13 +16,12 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
         layout_fields[1],
     );
 
-    let mut misspelling_list_state = app.misspellings_list_state().clone();
-    let misspelling_list = create_misspelling_list_widget(app.misspellings());
+    let misspelling_list = create_misspelling_list_widget(app.spellchecker.misspellings());
 
     frame.render_stateful_widget(
         misspelling_list,
         layout_fields[0],
-        &mut misspelling_list_state,
+        &mut app.misspellings_list_state,
     );
 
     frame.render_widget(

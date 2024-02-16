@@ -10,8 +10,8 @@ pub struct AppState {
     file_buffer: String,
     quit_flag: bool,
     selected_misspelling: Option<usize>,
-    misspellings_list_state: ListState,
-    spellchecker: Spellchecker,
+    pub misspellings_list_state: ListState,
+    pub spellchecker: Spellchecker,
 }
 
 impl Default for AppState {
@@ -57,20 +57,8 @@ impl AppState {
         self.quit_flag = true;
     }
 
-    pub fn misspellings_list_state(&mut self) -> &mut ListState {
-        &mut self.misspellings_list_state
-    }
-
     pub fn check_spelling(&mut self) {
         self.spellchecker.check(&self.file_buffer);
-    }
-
-    pub fn misspellings(&self) -> &Vec<spellchecker::Misspelling> {
-        self.spellchecker.misspellings()
-    }
-
-    pub fn misspellings_mut(&mut self) -> &mut Vec<spellchecker::Misspelling> {
-        self.spellchecker.misspellings_mut()
     }
 
     fn is_misspelling_selected(&self) -> bool {
@@ -104,7 +92,7 @@ impl AppState {
     }
 
     pub fn select_next_misspelling(&mut self) {
-        let count = self.misspellings().len();
+        let count = self.spellchecker.misspellings().len();
 
         if count == 0 {
             self.selected_misspelling = None;
@@ -122,7 +110,7 @@ impl AppState {
     }
 
     pub fn select_previous_misspelling(&mut self) {
-        let count = self.misspellings().len();
+        let count = self.spellchecker.misspellings().len();
 
         if count == 0 {
             self.selected_misspelling = None;
