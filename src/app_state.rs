@@ -1,7 +1,7 @@
 use ratatui::widgets::ListState;
 
+use crate::prelude::*;
 use crate::spellchecker::Spellchecker;
-use crate::{prelude::*, spellchecker};
 use std::usize;
 use std::{fs, fs::canonicalize, path::PathBuf};
 
@@ -130,5 +130,38 @@ impl AppState {
 
         self.selected_misspelling_inbound(count);
         self.set_misspellings_list_state();
+    }
+
+    /// Generates suggestions for currently selected misspelling
+    pub fn suggest_selected(&mut self) {
+        if self.selected_misspelling.is_none() {
+            return;
+        }
+
+        self.spellchecker
+            .suggest(self.selected_misspelling.unwrap());
+    }
+
+    /// Get suggestions for the currently selected misspelling
+    pub fn get_suggestions(&self) -> Option<&Vec<String>> {
+        if !self.is_misspelling_selected() {
+            None
+        } else {
+            Some(
+                self.spellchecker
+                    .get_suggestions(self.selected_misspelling.unwrap()),
+            )
+        }
+    }
+
+    pub fn get_misspelled_word(&self) -> Option<String> {
+        if !self.is_misspelling_selected() {
+            return None;
+        }
+
+        self.spellchecker
+            .misspellings()
+            .get(self.selected_misspelling.unwrap())
+            .map(|misspelling| misspelling.get_word().clone())
     }
 }

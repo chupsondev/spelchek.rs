@@ -4,6 +4,8 @@ use crate::app_state::AppState;
 use crate::prelude::*;
 
 pub fn update(app: &mut AppState) -> Result<()> {
+    app.suggest_selected();
+
     let key_event = get_key_event()?;
 
     if key_event.is_none() {

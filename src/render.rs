@@ -24,10 +24,21 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
         &mut app.misspellings_list_state,
     );
 
+    let suggestions_block = Block::new()
+        .title(format!(
+            "Suggestions for \"{}\"",
+            app.get_misspelled_word().unwrap_or(String::from(""))
+        ))
+        .borders(Borders::ALL);
+
+    let suggestions = app.get_suggestions().unwrap_or(&Vec::new()).clone();
+
     frame.render_widget(
-        Block::new()
-            .title("Correction suggestions")
-            .borders(Borders::ALL),
+        suggestions
+            .into_iter()
+            .collect::<List>()
+            .block(suggestions_block)
+            .highlight_style(Style::default().fg(Color::Blue)),
         layout_fields[2],
     );
 }

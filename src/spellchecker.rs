@@ -2,6 +2,7 @@ pub mod algorithm;
 use priority_queue::DoublePriorityQueue;
 
 use crate::prelude::*;
+use core::panic;
 use std::{cmp::Ordering, fs};
 
 use self::algorithm::edit_distance;
@@ -176,6 +177,26 @@ impl Spellchecker {
 
         self.misspellings
             .push(Misspelling::from_range(word.to_string(), range));
+    }
+
+    pub fn suggest(&mut self, misspelling_index: usize) {
+        let misspelling = self.misspellings
+            .get_mut(misspelling_index)
+            .unwrap_or_else(|| panic!("wrong selected misspelling index"));
+
+        if !misspelling.suggestions.is_empty() {
+            return;
+        }
+
+        misspelling.suggest(&self.suggestion_dict);
+    }
+
+    pub fn get_suggestions(&self, misspelling_index: usize) -> &Vec<String> {
+        &self
+            .misspellings
+            .get(misspelling_index)
+            .unwrap_or_else(|| panic!("wrong selected misspelling index"))
+            .suggestions
     }
 
     pub fn misspellings(&self) -> &Vec<Misspelling> {
