@@ -8,3 +8,4 @@ all:
 dict: 
 	mkdir -p $$HOME/.spelchek/
 	cp ./dict.txt $$HOME/.spelchek/dict.txt
+	cp ./suggestion_dict.txt $$HOME/.spelchek/suggestion_dict.txt
