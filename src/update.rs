@@ -6,11 +6,17 @@ use crate::prelude::*;
 pub fn update(app: &mut AppState) -> Result<()> {
     let key_event = get_key_event()?;
 
-    if let Some(event) = key_event {
-        if quit(&event) {
-            app.quit();
-        }
+    if key_event.is_none() {
+        return Ok(());
     }
+
+    let key_event = key_event.unwrap();
+
+    if quit(&key_event) {
+        app.quit();
+    }
+
+    misspelling_selection(&key_event, app);
 
     Ok(())
 }
@@ -33,6 +39,16 @@ fn quit(key_event: &KeyEvent) -> bool {
         KeyCode::Char('c') if key_event.modifiers == KeyModifiers::CONTROL => true,
         KeyCode::Char('d') if key_event.modifiers == KeyModifiers::CONTROL => true,
         _ => false,
+    }
+}
+
+fn misspelling_selection(key_event: &KeyEvent, app: &mut AppState) {
+    match key_event.code {
+        KeyCode::BackTab if key_event.modifiers == KeyModifiers::SHIFT => {
+            app.select_previous_misspelling()
+        }
+        KeyCode::Tab if key_event.modifiers.is_empty() => app.select_next_misspelling(),
+        _ => {}
     }
 }
 

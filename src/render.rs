@@ -1,4 +1,5 @@
 use crate::app_state::AppState;
+use crate::spellchecker::Misspelling;
 
 use ratatui::layout::{Constraint, Direction, Layout};
 use ratatui::style::Color;
@@ -15,14 +16,13 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
         layout_fields[1],
     );
 
-    frame.render_widget(
-        app.misspellings()
-            .iter()
-            .map(|f| f.get_word().clone())
-            .collect::<List>()
-            .block(Block::new().title("Misspellings").borders(Borders::ALL))
-            .highlight_style(Style::default().fg(Color::Blue)),
+    let mut misspelling_list_state = app.misspellings_list_state().clone();
+    let misspelling_list = create_misspelling_list_widget(app.misspellings());
+
+    frame.render_stateful_widget(
+        misspelling_list,
         layout_fields[0],
+        &mut misspelling_list_state,
     );
 
     frame.render_widget(
@@ -41,4 +41,12 @@ fn create_layout() -> Layout {
             Constraint::Percentage(60), // spellchecked text (buffer)
             Constraint::Percentage(20), // spelling suggestions
         ])
+}
+
+fn create_misspelling_list_widget(v: &[Misspelling]) -> List<'_> {
+    v.iter()
+        .map(|f| f.get_word().clone())
+        .collect::<List>()
+        .block(Block::new().title("Misspellings").borders(Borders::ALL))
+        .highlight_style(Style::default().fg(Color::Blue))
 }

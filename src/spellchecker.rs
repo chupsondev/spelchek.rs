@@ -178,7 +178,11 @@ impl Spellchecker {
             .push(Misspelling::from_range(word.to_string(), range));
     }
 
-    pub fn misspellings(&mut self) -> &mut Vec<Misspelling> {
+    pub fn misspellings(&self) -> &Vec<Misspelling> {
+        &self.misspellings
+    }
+
+    pub fn misspellings_mut(&mut self) -> &mut Vec<Misspelling> {
         &mut self.misspellings
     }
 }
