@@ -7,4 +7,4 @@ all:
 
 dict: 
 	mkdir -p $$HOME/.spelchek/
-	cp ./dict.txt $$HOME/.spelchek/
+	cp ./dict.txt $$HOME/.spelchek/dict.txt
