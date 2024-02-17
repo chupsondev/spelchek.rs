@@ -30,7 +30,7 @@ pub struct Config {
 
 impl Config {
     pub fn build(args: &[String]) -> Result<Self> {
-        let requested_file_path = match args.get(0) {
+        let requested_file_path = match args.first() {
             Some(arg) => arg,
             None => {
                 return Err(anyhow::anyhow!("not enough arguments given"));

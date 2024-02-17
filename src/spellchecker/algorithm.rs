@@ -1,6 +1,6 @@
 use std::cmp::min;
 
-pub fn search_for_word(word: &str, dict: &Vec<String>) -> Option<usize> {
+pub fn search_for_word(word: &str, dict: &[String]) -> Option<usize> {
     if word.contains(' ') || word.is_empty() {
         return None;
     }
@@ -33,7 +33,7 @@ pub fn search_for_word(word: &str, dict: &Vec<String>) -> Option<usize> {
     }
 }
 
-pub fn is_word_correct(word: &str, dict: &Vec<String>) -> bool {
+pub fn is_word_correct(word: &str, dict: &[String]) -> bool {
     if word.contains(' ') || word.is_empty() {
         return false;
     }
