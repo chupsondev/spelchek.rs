@@ -146,27 +146,46 @@ impl Spellchecker {
         })
     }
 
+    /// Returns `true` if the passed character is considered one that separates words
+    fn separates_word(character: &char) -> bool {
+        match character {
+            '.' | ':' | ',' | '!' | '?' | ';' | '&' => true,
+            c if c.is_whitespace() => true,
+            _ => false,
+        }
+    }
+
     pub fn check(&mut self, buffer: &str) {
-        let mut word_buf: String = String::new();
-        let mut is_proper_word: bool = true;
-        let mut start_pos: usize = 0;
-        for (i, c) in buffer.chars().enumerate() {
-            if c == ' ' || c == '\t' || c == '\n' {
+        let mut word_buf: String = String::new(); // The currently considered word
+
+        let mut is_proper_word: bool = true; // Whether the word contains any invalid characters
+                                             // like numbers
+
+        let mut start_pos: usize = 0; // The position of the first character in the currently
+                                      // considered word
+
+        for (i, c) in buffer
+            .chars()
+            .chain(vec!['\n'].into_iter()) // A new line character is added to the back, so that the last word in the buffer is processed
+            .enumerate()
+        {
+            if Spellchecker::separates_word(&c) {
                 if !word_buf.is_empty() && is_proper_word {
                     self.check_word_and_add(&word_buf, (start_pos, i - 1));
                 }
 
+                // Reset variables
                 word_buf.clear();
                 start_pos = i + 1;
                 is_proper_word = true;
-            } else {
-                word_buf.push(c);
-                is_proper_word = is_proper_word && c.is_alphabetic();
+                continue;
             }
-        }
 
-        if !word_buf.is_empty() && is_proper_word {
-            self.check_word_and_add(&word_buf, (start_pos, buffer.len() - 1));
+            word_buf.push(c);
+
+            is_proper_word =
+                is_proper_word && (c.is_alphabetic() || c == '\u{0027}' || c == '\u{2019}');
+            // Allow apostrophes inside of words
         }
     }
 
@@ -180,7 +199,8 @@ impl Spellchecker {
     }
 
     pub fn suggest(&mut self, misspelling_index: usize) {
-        let misspelling = self.misspellings
+        let misspelling = self
+            .misspellings
             .get_mut(misspelling_index)
             .unwrap_or_else(|| panic!("wrong selected misspelling index"));
 
@@ -223,6 +243,27 @@ mod tests {
         spellchecker.check(text);
         let misspellings = spellchecker.misspellings();
         assert_eq!(misspellings.len(), 4);
+    }
+
+    #[test]
+    fn test_misspelling_word_separation() {
+        let text = "ths";
+        let mut spellchecker = get_spellchecker();
+        spellchecker.check(text);
+        let misspellings = spellchecker.misspellings();
+        assert_eq!(misspellings.len(), 1);
+
+        let text = "ths ths.ths ths'ths";
+        let mut spellchecker = get_spellchecker();
+        spellchecker.check(text);
+        let misspellings = spellchecker.misspellings();
+        assert_eq!(misspellings.len(), 4);
+
+        let text = "apples apple's";
+        let mut spellchecker = get_spellchecker();
+        spellchecker.check(text);
+        let misspellings = spellchecker.misspellings();
+        assert_eq!(misspellings.len(), 0);
     }
 
     #[test]
@@ -445,5 +486,13 @@ mod tests {
         assert_eq!(iter.next(), Some(SuggestionPriority::new(1, 10)));
         assert_eq!(iter.next(), Some(SuggestionPriority::new(2, 10)));
         assert_eq!(iter.next(), Some(SuggestionPriority::new(2, 0)));
+    }
+
+    #[test]
+    fn test_word_separate_test() {
+        assert!(Spellchecker::separates_word(&'.'));
+        assert!(Spellchecker::separates_word(&'&'));
+        assert!(!Spellchecker::separates_word(&'"'));
+        assert!(!Spellchecker::separates_word(&'\''));
     }
 }
