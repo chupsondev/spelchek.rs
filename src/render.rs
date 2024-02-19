@@ -1,10 +1,9 @@
 use crate::app_state::AppState;
-use crate::spellchecker::Misspelling;
 
 use ratatui::layout::{Constraint, Direction, Layout};
 use ratatui::style::Color;
 use ratatui::style::Style;
-use ratatui::widgets::{Block, Borders, List, Paragraph};
+use ratatui::widgets::{Block, Borders, List, ListItem, Paragraph};
 use ratatui::Frame;
 
 pub fn render(frame: &mut Frame, app: &mut AppState) {
@@ -16,7 +15,8 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
         layout_fields[1],
     );
 
-    let misspelling_list = create_misspelling_list_widget(app.spellchecker.misspellings());
+    let misspelling_list =
+        create_boxed_list_widget(app.spellchecker.misspellings().iter(), "Misspellings");
 
     frame.render_stateful_widget(
         misspelling_list,
@@ -24,21 +24,16 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
         &mut app.misspellings_list_state,
     );
 
-    let suggestions_block = Block::new()
-        .title(format!(
-            "Suggestions for \"{}\"",
-            app.get_misspelled_word().unwrap_or(String::from(""))
-        ))
-        .borders(Borders::ALL);
-
     let suggestions = app.get_suggestions().unwrap_or(&Vec::new()).clone();
 
     frame.render_widget(
-        suggestions
-            .into_iter()
-            .collect::<List>()
-            .block(suggestions_block)
-            .highlight_style(Style::default().fg(Color::Blue)),
+        create_boxed_list_widget(
+            suggestions.into_iter(),
+            &format!(
+                "Suggestions for \"{}\"",
+                app.get_misspelled_word().unwrap_or(String::from(""))
+            ),
+        ),
         layout_fields[2],
     );
 }
@@ -53,10 +48,12 @@ fn create_layout() -> Layout {
         ])
 }
 
-fn create_misspelling_list_widget(v: &[Misspelling]) -> List<'_> {
-    v.iter()
-        .map(|f| f.get_word().clone())
-        .collect::<List>()
-        .block(Block::new().title("Misspellings").borders(Borders::ALL))
+fn create_boxed_list_widget<'a, T>(v: T, box_title: &'a str) -> List<'a>
+where
+    T: Iterator,
+    T::Item: Into<ListItem<'a>>,
+{
+    v.collect::<List>()
+        .block(Block::new().title(box_title).borders(Borders::ALL))
         .highlight_style(Style::default().fg(Color::Blue))
 }

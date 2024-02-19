@@ -1,5 +1,6 @@
 pub mod algorithm;
 use priority_queue::DoublePriorityQueue;
+use ratatui::text::Text;
 
 use crate::prelude::*;
 use core::panic;
@@ -54,6 +55,12 @@ pub struct Misspelling {
     start: usize,
     end: usize,
     suggestions: Vec<String>,
+}
+
+impl From<&Misspelling> for Text<'_> {
+    fn from(value: &Misspelling) -> Self {
+        Text::raw(value.word.clone())
+    }
 }
 
 impl Misspelling {
