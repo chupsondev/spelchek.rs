@@ -19,6 +19,7 @@ pub fn update(app: &mut AppState) -> Result<()> {
     }
 
     misspelling_selection(&key_event, app);
+    suggestion_selection(&key_event, app);
 
     Ok(())
 }
@@ -50,6 +51,14 @@ fn misspelling_selection(key_event: &KeyEvent, app: &mut AppState) {
             app.select_previous_misspelling()
         }
         KeyCode::Tab if key_event.modifiers.is_empty() => app.select_next_misspelling(),
+        _ => {}
+    }
+}
+
+fn suggestion_selection(key_event: &KeyEvent, app: &mut AppState) {
+    match key_event.code {
+        KeyCode::Char('j') => app.select_next_suggestion(),
+        KeyCode::Char('k') => app.select_previous_suggestion(),
         _ => {}
     }
 }

@@ -3,7 +3,7 @@ use crate::app_state::AppState;
 use ratatui::layout::{Constraint, Direction, Layout};
 use ratatui::style::Color;
 use ratatui::style::Style;
-use ratatui::widgets::{Block, Borders, List, ListItem, Paragraph};
+use ratatui::widgets::{Block, Borders, List, ListItem, ListState, Paragraph};
 use ratatui::Frame;
 
 pub fn render(frame: &mut Frame, app: &mut AppState) {
@@ -26,7 +26,9 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
 
     let suggestions = app.get_suggestions().unwrap_or(&Vec::new()).clone();
 
-    frame.render_widget(
+    let mut state = ListState::default();
+    state.select(app.selected_suggestion);
+    frame.render_stateful_widget(
         create_boxed_list_widget(
             suggestions.into_iter(),
             &format!(
@@ -35,6 +37,7 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
             ),
         ),
         layout_fields[2],
+        &mut state,
     );
 }
 

@@ -1,7 +1,7 @@
 use ratatui::widgets::ListState;
 
 use crate::prelude::*;
-use crate::spellchecker::Spellchecker;
+use crate::spellchecker::{Misspelling, Spellchecker};
 use std::usize;
 use std::{fs, fs::canonicalize, path::PathBuf};
 
@@ -10,6 +10,7 @@ pub struct AppState {
     file_buffer: String,
     quit_flag: bool,
     selected_misspelling: Option<usize>,
+    pub selected_suggestion: Option<usize>,
     pub misspellings_list_state: ListState,
     pub spellchecker: Spellchecker,
 }
@@ -21,6 +22,7 @@ impl Default for AppState {
             file_buffer: String::new(),
             quit_flag: false,
             selected_misspelling: None,
+            selected_suggestion: None,
             misspellings_list_state: ListState::default(),
             spellchecker: Spellchecker::default(),
         }
@@ -35,6 +37,7 @@ impl AppState {
             file_buffer,
             quit_flag: false,
             selected_misspelling: None,
+            selected_suggestion: None,
             misspellings_list_state: ListState::default(),
             spellchecker: Spellchecker::new()?,
         })
@@ -130,6 +133,47 @@ impl AppState {
 
         self.selected_misspelling_inbound(count);
         self.set_misspellings_list_state();
+    }
+
+    /// Returns the reference to the selected misspelling if one is selected, otherwise None
+    fn get_selected_misspelling(&self) -> Option<&Misspelling> {
+        match self.selected_misspelling {
+            None => None,
+            Some(idx) => Some(
+                self.spellchecker
+                    .misspellings()
+                    .get(idx)
+                    .expect("selected misspelling doesn't exist (something went very wrong)"),
+            ),
+        }
+    }
+
+    /// Selects the next suggestion for correcting the currently selected misspelling. If no
+    /// misspelling is selected, it does nothing.
+    pub fn select_next_suggestion(&mut self) {
+        let selected_misspelling = match self.get_selected_misspelling() {
+            None => {
+                return;
+            }
+            Some(misspelling) => misspelling,
+        };
+
+        self.selected_suggestion =
+            selected_misspelling.get_next_suggestion_index(self.selected_suggestion);
+    }
+
+    /// Selects the previous suggestion for correcting the currently selected misspelling. If no
+    /// misspelling is selected, it does nothing.
+    pub fn select_previous_suggestion(&mut self) {
+        let selected_misspelling = match self.get_selected_misspelling() {
+            None => {
+                return;
+            }
+            Some(misspelling) => misspelling,
+        };
+
+        self.selected_suggestion =
+            selected_misspelling.get_previous_suggestion_index(self.selected_suggestion);
     }
 
     /// Generates suggestions for currently selected misspelling

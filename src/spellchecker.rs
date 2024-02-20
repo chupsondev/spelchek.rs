@@ -121,6 +121,46 @@ impl Misspelling {
             .collect();
         &self.suggestions
     }
+
+    /// Returns the index to the misspelling that comes after the current selection. If current
+    /// selection is None, selects the first element. If the current selection is the last
+    /// suggestion, wraps around (selects the first element).
+    /// If no suggestions can be selected, returns None.
+    pub fn get_next_suggestion_index(&self, current_selection: Option<usize>) -> Option<usize> {
+        if self.suggestions.is_empty() {
+            return None;
+        }
+
+        match current_selection {
+            None => Some(0), // If there is no current selection return first index
+            Some(idx) => {
+                let next = idx.saturating_add(1);
+
+                // Check if selection exceeds bounds
+                if next < self.suggestions.len() {
+                    Some(next)
+                } else {
+                    Some(0)
+                }
+            }
+        }
+    }
+
+    /// Returns the index to the misspelling that comes before the current selection. If current
+    /// selection is None, selects the last element. If the current selection is the first
+    /// suggestion, wraps around (selects the last element).
+    /// If no suggestions can be selected, returns None.
+    pub fn get_previous_suggestion_index(&self, current_selection: Option<usize>) -> Option<usize> {
+        if self.suggestions.is_empty() {
+            return None;
+        }
+
+        let suggestions_len = self.suggestions.len();
+        match current_selection {
+            None => Some(suggestions_len - 1), // If there is no current selection return last index
+            Some(idx) => Some(idx.checked_sub(1).unwrap_or(suggestions_len - 1)),
+        }
+    }
 }
 
 #[derive(Default)]
@@ -501,5 +541,40 @@ mod tests {
         assert!(Spellchecker::separates_word(&'&'));
         assert!(!Spellchecker::separates_word(&'"'));
         assert!(!Spellchecker::separates_word(&'\''));
+    }
+
+    // Suggestion index
+    #[test]
+    fn test_get_suggestion_idx_no_misspellings() {
+        let misspelling = Misspelling::new("".to_string(), 0, 0);
+        assert_eq!(misspelling.get_next_suggestion_index(Some(1)), None);
+        assert_eq!(misspelling.get_next_suggestion_index(Some(10000000)), None);
+        assert_eq!(misspelling.get_next_suggestion_index(None), None);
+
+        assert_eq!(misspelling.get_previous_suggestion_index(Some(1)), None);
+        assert_eq!(
+            misspelling.get_previous_suggestion_index(Some(10000000)),
+            None
+        );
+        assert_eq!(misspelling.get_previous_suggestion_index(None), None);
+    }
+
+    #[test]
+    fn test_get_next_suggestion_idx() {
+        let mut misspelling = Misspelling::new("".to_string(), 0, 0);
+        misspelling.suggestions = vec![String::new(); 10];
+        assert_eq!(misspelling.get_next_suggestion_index(Some(0)), Some(1));
+        assert_eq!(misspelling.get_next_suggestion_index(Some(10000)), Some(0));
+        assert_eq!(misspelling.get_next_suggestion_index(Some(9)), Some(0));
+        assert_eq!(misspelling.get_next_suggestion_index(None), Some(0));
+    }
+
+    #[test]
+    fn test_get_previous_suggestion_idx() {
+        let mut misspelling = Misspelling::new("".to_string(), 0, 0);
+        misspelling.suggestions = vec![String::new(); 10];
+        assert_eq!(misspelling.get_previous_suggestion_index(Some(2)), Some(1));
+        assert_eq!(misspelling.get_previous_suggestion_index(Some(0)), Some(9));
+        assert_eq!(misspelling.get_previous_suggestion_index(None), Some(9));
     }
 }
