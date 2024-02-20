@@ -9,6 +9,7 @@ fn main() -> Result<()> {
     let res = spelchek::run(&config);
     if let Result::Err(error) = res {
         eprintln!("{error:?}");
+        spelchek::close_terminal()?;
         std::process::exit(1);
     }
     Ok(())

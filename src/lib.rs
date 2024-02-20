@@ -83,7 +83,7 @@ fn start_terminal() -> Result<Terminal<CrosstermBackend<impl Write>>> {
     Ok(terminal)
 }
 
-fn close_terminal() -> Result<()> {
+pub fn close_terminal() -> Result<()> {
     disable_raw_mode()?;
     execute!(io::stdout(), LeaveAlternateScreen)?;
     Ok(())
