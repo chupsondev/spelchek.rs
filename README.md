@@ -1,3 +1,5 @@
+![test workflow status](https://github.com/chupsondev/spelchek.rs/actions/workflows/test.yml/badge.svg)
+
 # spelchek.rs
 This is a very small and simple spellchecker program I'm building in Rust using [ratatui](https://ratatui.rs/), with the goal of learning [ratatui](https://ratatui.rs/) and also having fun with some algorithms.
 
