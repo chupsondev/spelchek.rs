@@ -9,7 +9,7 @@ pub struct AppState {
     file_path: PathBuf,
     file_buffer: String,
     quit_flag: bool,
-    selected_misspelling: Option<usize>,
+    pub selected_misspelling: Option<usize>,
     pub selected_suggestion: Option<usize>,
     pub misspellings_list_state: ListState,
     pub spellchecker: Spellchecker,
