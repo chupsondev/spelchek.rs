@@ -20,6 +20,7 @@ pub fn update(app: &mut AppState) -> Result<()> {
 
     misspelling_selection(&key_event, app);
     suggestion_selection(&key_event, app);
+    accept_suggestion(&key_event, app);
 
     Ok(())
 }
@@ -60,6 +61,13 @@ fn suggestion_selection(key_event: &KeyEvent, app: &mut AppState) {
         KeyCode::Char('j') => app.select_next_suggestion(),
         KeyCode::Char('k') => app.select_previous_suggestion(),
         _ => {}
+    }
+}
+
+/// On `Enter`, accepts the currently selected suggestion for the currently selected misspelling.
+fn accept_suggestion(key_event: &KeyEvent, app: &mut AppState) {
+    if key_event.code == KeyCode::Enter && key_event.modifiers.is_empty() {
+        app.accept_suggestion();
     }
 }
 

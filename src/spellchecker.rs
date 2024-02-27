@@ -163,11 +163,11 @@ impl Misspelling {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Spellchecker {
     dict: Vec<String>,
     suggestion_dict: Vec<String>,
-    misspellings: Vec<Misspelling>,
+    pub misspellings: Vec<Misspelling>,
 }
 
 impl Spellchecker {
@@ -272,6 +272,15 @@ impl Spellchecker {
 
     pub fn misspellings_mut(&mut self) -> &mut Vec<Misspelling> {
         &mut self.misspellings
+    }
+
+    /// Adds `offset` to all of the misspellings' start and end positions, starting at and including the misspelling at index `from_idx`. The offset can be negative, in such case, the positions are moved "backwards" (subtracted from).
+    pub fn offset_misspelling_positions(&mut self, offset: i32, from_idx: usize) {
+        for misspelling in self.misspellings.iter_mut().skip(from_idx) {
+            // Shouldn't overflow, if it does, look for the error in caller
+            misspelling.start = (misspelling.start as i32 + offset) as usize;
+            misspelling.end = (misspelling.end as i32 + offset) as usize;
+        }
     }
 }
 
@@ -576,5 +585,54 @@ mod tests {
         assert_eq!(misspelling.get_previous_suggestion_index(Some(2)), Some(1));
         assert_eq!(misspelling.get_previous_suggestion_index(Some(0)), Some(9));
         assert_eq!(misspelling.get_previous_suggestion_index(None), Some(9));
+    }
+
+    fn empty_misspelling(start: usize, end: usize) -> Misspelling {
+        Misspelling {
+            word: "".to_string(),
+            start,
+            end,
+            suggestions: Vec::new(),
+        }
+    }
+
+    fn set_misspellings(spellchecker: &mut Spellchecker) {
+        spellchecker.misspellings = vec![
+            empty_misspelling(0, 5),
+            empty_misspelling(10, 20),
+            empty_misspelling(42, 420),
+        ]
+    }
+
+    #[test]
+    fn test_offsetting_misspellings() {
+        let mut spellchecker = get_spellchecker();
+        set_misspellings(&mut spellchecker);
+        spellchecker.offset_misspelling_positions(1, 0);
+        assert_eq!(
+            spellchecker.misspellings,
+            vec![
+                empty_misspelling(1, 6),
+                empty_misspelling(11, 21),
+                empty_misspelling(43, 421)
+            ]
+        );
+        spellchecker.offset_misspelling_positions(1, 1);
+        assert_eq!(
+            spellchecker.misspellings,
+            vec![
+                empty_misspelling(1, 6),
+                empty_misspelling(12, 22),
+                empty_misspelling(44, 422)
+            ]
+        );
+    }
+
+    #[test]
+    fn test_offsetting_misspellings_no_misspellings() {
+        let mut spellchecker = get_spellchecker();
+        spellchecker.misspellings = vec![];
+        spellchecker.offset_misspelling_positions(99999999, 99999999);
+        assert_eq!(spellchecker.misspellings, vec![]);
     }
 }

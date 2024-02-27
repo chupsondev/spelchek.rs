@@ -5,6 +5,7 @@ use crate::spellchecker::{Misspelling, Spellchecker};
 use std::usize;
 use std::{fs, fs::canonicalize, path::PathBuf};
 
+#[derive(Debug)]
 pub struct AppState {
     file_path: PathBuf,
     file_buffer: String,
@@ -73,9 +74,15 @@ impl AppState {
         self.set_misspellings_list_state();
     }
 
-    /// Checks if the currently selected misspelling is in bounds, if not, wraps around
+    /// Checks if the currently selected misspelling is in bounds, if not, wraps around. If there
+    /// are no misspellings, sets the currently selected to `None`.
     fn selected_misspelling_inbound(&mut self, misspellings_count: usize) {
         if !self.is_misspelling_selected() {
+            return;
+        }
+
+        if misspellings_count == 0 {
+            self.selected_misspelling = None;
             return;
         }
 
@@ -207,5 +214,123 @@ impl AppState {
             .misspellings()
             .get(self.selected_misspelling.unwrap())
             .map(|misspelling| misspelling.get_word().clone())
+    }
+
+    /// Accepts the currently selected suggestion for the currently selected misspelling.
+    pub fn accept_suggestion(&mut self) {
+        // If there is no selected misspelling or suggestion, do nothing.
+        if self.selected_misspelling.is_none() || self.selected_suggestion.is_none() {
+            return;
+        }
+        let selected_misspelling_idx = self
+            .selected_misspelling
+            .expect("should always work due to preceding if");
+
+        // Retrieve the selected misspelling and remove it from the list - as it is about to be
+        // corrected it will not be a misspelling anymore.
+        // NOTE: If something goes wrong with the correction this could be an issue, as it is done
+        // before the correction
+        let selected_misspelling = self
+            .spellchecker
+            .misspellings
+            .remove(selected_misspelling_idx);
+
+        // The suggestion to be put in place of the misspelled word
+        let suggestion: &str = selected_misspelling
+            .get_suggestions()
+            .get(self.selected_suggestion.unwrap())
+            .unwrap();
+
+        let misspelling_len: usize =
+            selected_misspelling.get_end() - selected_misspelling.get_start() + 1;
+
+        let len_delta: i32 = suggestion.len() as i32 - misspelling_len as i32; // The difference in length between
+                                                                               // the previously misspelled word and the new correction
+
+        // Splits off the part of the buffer containing all text from the beginning of the
+        // misspelling to the end of the buffer, and stores it.
+        let misspelling_start: usize = selected_misspelling.get_start();
+        let buffer_after: String = self.file_buffer.split_off(misspelling_start);
+        self.file_buffer.push_str(suggestion); // Adds the suggestion to the end of the buffer
+                                               // TODO: Make suggestion try to match the case of the misspelling. Example: if the
+                                               // misspelling starts with a capital letter the suggestion should as well.
+
+        self.file_buffer.push_str(&buffer_after[misspelling_len..]); // Adds the
+                                                                     // rest of the text to the end of the buffer
+
+        self.spellchecker
+            .offset_misspelling_positions(len_delta, selected_misspelling_idx);
+
+        // The number of misspellings is changed, therefore the selected misspelling must be
+        // updated.
+        self.selected_misspelling_inbound(self.spellchecker.misspellings.len());
+        self.set_misspellings_list_state();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_accepting_suggestion() {
+        let text = "Hello world, thsi is some example text.";
+        let mut app_state = AppState::new(PathBuf::from("/"), text.to_string()).unwrap();
+        app_state.check_spelling();
+        app_state.select_first_misspelling();
+        app_state.suggest_selected();
+        app_state.select_next_suggestion();
+
+        let suggestion = app_state
+            .get_suggestions()
+            .unwrap()
+            .get(app_state.selected_suggestion.unwrap())
+            .unwrap()
+            .clone();
+        app_state.accept_suggestion();
+
+        assert_eq!(
+            app_state.file_buffer,
+            format!("Hello world, {} is some example text.", suggestion) // Can't be sure what
+                                                                         // suggestion is the first one
+        );
+    }
+
+    #[test]
+    // The corrected misspelling is the last word
+    fn test_accepting_suggestion_last_word() {
+        let text = "This piece of text ends with a mispeling";
+        let mut app_state = AppState::new(PathBuf::from("/"), text.to_string()).unwrap();
+        app_state.check_spelling();
+        app_state.select_first_misspelling();
+        app_state.suggest_selected();
+        app_state.select_next_suggestion();
+
+        let suggestion = app_state
+            .get_suggestions()
+            .unwrap()
+            .get(app_state.selected_suggestion.unwrap())
+            .unwrap()
+            .clone();
+        app_state.accept_suggestion();
+
+        assert_eq!(
+            app_state.file_buffer,
+            format!("This piece of text ends with a {}", suggestion) // Can't be sure what
+                                                                     // suggestion is the first one
+        );
+    }
+
+    #[test]
+    fn test_accepting_suggestion_no_misspelling() {
+        let text = "Hello world";
+        let mut app_state = AppState::new(PathBuf::from("/"), text.to_string()).unwrap();
+        app_state.accept_suggestion();
+        app_state.accept_suggestion();
+        app_state.accept_suggestion();
+        app_state.accept_suggestion();
+        app_state.accept_suggestion();
+
+        assert_eq!(app_state.file_buffer, "Hello world");
     }
 }
