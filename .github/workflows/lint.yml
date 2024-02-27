@@ -1,0 +1,22 @@
+name: Lint and format
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  lint:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Format
+      run: cargo fmt --all --check
+    - name: Clippy
+      run: cargo clippy --all-targets --color always
