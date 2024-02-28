@@ -236,10 +236,13 @@ impl AppState {
             .remove(selected_misspelling_idx);
 
         // The suggestion to be put in place of the misspelled word
-        let suggestion: &str = selected_misspelling
+        let mut suggestion: String = selected_misspelling
             .get_suggestions()
             .get(self.selected_suggestion.unwrap())
-            .unwrap();
+            .unwrap()
+            .to_string();
+        match_case(selected_misspelling.get_word(), &mut suggestion); // Match the case of the
+                                                                      // corrected word to the previously misspelled word
 
         let misspelling_len: usize =
             selected_misspelling.get_end() - selected_misspelling.get_start() + 1;
@@ -251,10 +254,7 @@ impl AppState {
         // misspelling to the end of the buffer, and stores it.
         let misspelling_start: usize = selected_misspelling.get_start();
         let buffer_after: String = self.file_buffer.split_off(misspelling_start);
-        self.file_buffer.push_str(suggestion); // Adds the suggestion to the end of the buffer
-                                               // TODO: Make suggestion try to match the case of the misspelling. Example: if the
-                                               // misspelling starts with a capital letter the suggestion should as well.
-
+        self.file_buffer.push_str(&suggestion); // Adds the suggestion to the end of the buffer
         self.file_buffer.push_str(&buffer_after[misspelling_len..]); // Adds the
                                                                      // rest of the text to the end of the buffer
 
@@ -266,6 +266,44 @@ impl AppState {
         self.selected_misspelling_inbound(self.spellchecker.misspellings.len());
         self.set_misspellings_list_state();
     }
+}
+
+/// Tries to match case of `target` to that of `source`. It does so by matching the case of
+/// individual characters. For each index in `source`, if that index also exists in `target` it
+/// sets the case of the character on that index in `target` to be the same as the character on that
+/// index in `source`.
+///
+///
+/// # Example
+/// ```ignore
+/// let mut target = String::from("target");
+/// match_case("SoUrCe", &mut target);
+/// assert_eq!(target, "TaRgEt");
+/// ```
+// Assumes UTF-8 encoding
+fn match_case(source: &str, target: &mut String) {
+    let mut new_target: String = String::new();
+
+    let mut source_chars = source.chars();
+    for target_char in target.chars() {
+        let source_char: char = match source_chars.next() {
+            Some(c) => c,
+
+            // If there are no characters of `source` left to match case to, add
+            // unchanged character to `new_target`
+            None => {
+                new_target.push(target_char);
+                continue;
+            }
+        };
+
+        if source_char.is_uppercase() {
+            new_target.push_str(&target_char.to_uppercase().to_string());
+        } else {
+            new_target.push_str(&target_char.to_lowercase().to_string());
+        }
+    }
+    *target = new_target;
 }
 
 #[cfg(test)]
@@ -332,5 +370,55 @@ mod tests {
         app_state.accept_suggestion();
 
         assert_eq!(app_state.file_buffer, "Hello world");
+    }
+
+    #[test]
+    fn test_accepting_suggestion_match_case() {
+        let text = "HeLllO world, this is some example text.";
+        let mut app_state = AppState::new(PathBuf::from("/"), text.to_string()).unwrap();
+        app_state.check_spelling();
+        app_state.select_first_misspelling();
+        app_state.suggest_selected();
+        app_state.select_next_suggestion();
+
+        app_state.accept_suggestion();
+
+        assert_eq!(
+            app_state.file_buffer,
+            "HeLlo world, this is some example text." // Here I take a gamble
+                                                      // and assume the top suggestion for "helllo" is "hello". If for some reason it's not,
+                                                      // this test will fail. If it's failing, check the suggestions.
+        );
+    }
+
+    #[test]
+    fn test_match_case() {
+        let mut target = String::from("hello");
+        match_case("World", &mut target);
+        assert_eq!(target, "Hello");
+
+        let mut target = String::from("hello");
+        match_case("worlD", &mut target);
+        assert_eq!(target, "hellO");
+
+        let mut target = String::from("hello");
+        match_case("worLd", &mut target);
+        assert_eq!(target, "helLo");
+
+        let mut target = String::from("hello");
+        match_case("", &mut target);
+        assert_eq!(target, "hello");
+
+        let mut target = String::from("");
+        match_case("Hello world", &mut target);
+        assert_eq!(target, "");
+
+        let mut target = String::from("hello");
+        match_case("AntidisestablishmentARIANISM", &mut target);
+        assert_eq!(target, "Hello");
+
+        let mut target = String::from("antidisestablishmentarianism");
+        match_case("WorlD", &mut target);
+        assert_eq!(target, "AntiDisestablishmentarianism");
     }
 }
