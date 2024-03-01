@@ -1,9 +1,12 @@
+use anyhow::anyhow;
 use ratatui::widgets::ListState;
 
 use crate::prelude::*;
 use crate::spellchecker::{Misspelling, Spellchecker};
-use std::usize;
+use std::fs::File;
+use std::io::Write;
 use std::{fs, fs::canonicalize, path::PathBuf};
+use std::{u8, usize};
 
 #[derive(Debug)]
 pub struct AppState {
@@ -265,6 +268,19 @@ impl AppState {
         // updated.
         self.selected_misspelling_inbound(self.spellchecker.misspellings.len());
         self.set_misspellings_list_state();
+    }
+
+    /// Saves the corrected texts by replacing the file contents with the contents of the buffer.
+    pub fn save_file(&self) -> Result<()> {
+        if !self.file_path.exists() {
+            return Err(anyhow!("opened file doesn't exist and can't be written to"));
+        }
+
+        let mut file = File::create(self.file_path.clone())?;
+
+        let buf_bytes: Vec<u8> = self.file_buffer.bytes().collect();
+        file.write_all(&buf_bytes)?;
+        Ok(())
     }
 }
 

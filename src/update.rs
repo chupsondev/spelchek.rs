@@ -21,6 +21,7 @@ pub fn update(app: &mut AppState) -> Result<()> {
     misspelling_selection(&key_event, app);
     suggestion_selection(&key_event, app);
     accept_suggestion(&key_event, app);
+    save_file(&key_event, app)?;
 
     Ok(())
 }
@@ -69,6 +70,17 @@ fn accept_suggestion(key_event: &KeyEvent, app: &mut AppState) {
     if key_event.code == KeyCode::Enter && key_event.modifiers.is_empty() {
         app.accept_suggestion();
     }
+}
+
+/// On 's' or 'S', save the corrected text to the file path from which it was first read. Returns
+/// `Result<()>` because it might fail upon file write failure
+fn save_file(key_event: &KeyEvent, app: &mut AppState) -> Result<()> {
+    if (key_event.code == KeyCode::Char('s') || key_event.code == KeyCode::Char('s'))
+        && key_event.modifiers.is_empty()
+    {
+        app.save_file()?;
+    }
+    Ok(())
 }
 
 #[cfg(test)]
