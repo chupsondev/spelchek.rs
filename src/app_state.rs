@@ -9,10 +9,20 @@ use std::{fs, fs::canonicalize, path::PathBuf};
 use std::{u8, usize};
 
 #[derive(Debug)]
+/// Indicates the different screens that the app has. Those include the `Main` screen, where
+/// everything important happens, and the `Quit` screen, which asks the user whether they would
+/// like to save before quitting the application
+pub enum Screen {
+    Main,
+    Quit,
+}
+
+#[derive(Debug)]
 pub struct AppState {
     file_path: PathBuf,
     file_buffer: String,
     quit_flag: bool,
+    pub active_screen: Screen,
     pub selected_misspelling: Option<usize>,
     pub selected_suggestion: Option<usize>,
     pub misspellings_list_state: ListState,
@@ -25,6 +35,7 @@ impl Default for AppState {
             file_path: PathBuf::new(),
             file_buffer: String::new(),
             quit_flag: false,
+            active_screen: Screen::Main,
             selected_misspelling: None,
             selected_suggestion: None,
             misspellings_list_state: ListState::default(),
@@ -40,6 +51,7 @@ impl AppState {
             file_path,
             file_buffer,
             quit_flag: false,
+            active_screen: Screen::Main,
             selected_misspelling: None,
             selected_suggestion: None,
             misspellings_list_state: ListState::default(),
@@ -60,8 +72,18 @@ impl AppState {
         self.quit_flag
     }
 
+    /// Quit the application.
+    /// Set the active screen to the quit screen to ask the user if they would like to save the
+    /// file; if the quit screen is already active, stop the application.
     pub fn quit(&mut self) {
-        self.quit_flag = true;
+        match self.active_screen {
+            Screen::Main => {
+                self.active_screen = Screen::Quit;
+            }
+            Screen::Quit => {
+                self.quit_flag = true;
+            }
+        }
     }
 
     pub fn check_spelling(&mut self) {

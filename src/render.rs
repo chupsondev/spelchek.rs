@@ -1,11 +1,12 @@
-use crate::app_state::AppState;
+use crate::app_state::{AppState, Screen};
 use crate::spellchecker::Misspelling;
 
-use ratatui::layout::{Constraint, Direction, Layout};
+use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::style::Style;
 use ratatui::style::{Color, Modifier};
 use ratatui::text::{Line, Span};
-use ratatui::widgets::{Block, Borders, List, ListItem, ListState, Paragraph};
+use ratatui::widgets::block::Title;
+use ratatui::widgets::{Block, Borders, Clear, List, ListItem, ListState, Paragraph};
 use ratatui::Frame;
 
 pub fn render(frame: &mut Frame, app: &mut AppState) {
@@ -45,6 +46,13 @@ pub fn render(frame: &mut Frame, app: &mut AppState) {
         layout_fields[2],
         &mut state,
     );
+
+    // If the quit window is active, render it on top of the already rendered main content
+
+    // If the quit screen is not active, terminate the function
+    if let Screen::Quit = app.active_screen {
+        draw_quit_popup(frame);
+    }
 }
 
 /// Determines whether a position is the start of some Misspelling. If it is, returns the index of
@@ -151,6 +159,60 @@ where
     v.collect::<List>()
         .block(Block::new().title(box_title).borders(Borders::ALL))
         .highlight_style(Style::default().fg(Color::Blue))
+}
+
+fn create_popup(width_percent: u8, height_percent: u8, frame: &Frame) -> Rect {
+    let vertical_division = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Percentage(((100 - height_percent) / 2).into()),
+            Constraint::Percentage(height_percent.into()),
+            Constraint::Percentage(((100 - height_percent) / 2).into()),
+        ]);
+
+    let horizontal_division = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([
+            Constraint::Percentage(((100 - width_percent) / 2).into()),
+            Constraint::Percentage(width_percent.into()),
+            Constraint::Percentage(((100 - width_percent) / 2).into()),
+        ]);
+    let vertical_slice = vertical_division.split(frame.size())[1];
+    horizontal_division.split(vertical_slice)[1]
+}
+
+/// Draw the pop up window asking the user whether they would like to save the file contents before
+/// exiting
+fn draw_quit_popup(frame: &mut Frame) {
+    let popup_area = create_popup(20, 10, frame);
+    let popup_block = Block::default()
+        .title(Title::from("Quit").alignment(ratatui::layout::Alignment::Center))
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::Red));
+    let popup_block_fields = &Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Percentage(50),
+            Constraint::Percentage(50),
+            Constraint::Min(1),
+        ])
+        .split(popup_block.inner(popup_area))[1..];
+
+    // Clear the popup area
+    frame.render_widget(Clear, popup_area);
+
+    frame.render_widget(popup_block, popup_area);
+
+    frame.render_widget(
+        Paragraph::new("Would you like to save the file contents before quitting?")
+            .alignment(ratatui::layout::Alignment::Center),
+        popup_block_fields[0],
+    );
+
+    frame.render_widget(
+        Paragraph::new("[Y]es           [N]o").alignment(ratatui::layout::Alignment::Center),
+        popup_block_fields[1],
+    );
 }
 
 #[cfg(test)]

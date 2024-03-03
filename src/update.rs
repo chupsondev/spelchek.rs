@@ -1,6 +1,6 @@
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 
-use crate::app_state::AppState;
+use crate::app_state::{AppState, Screen};
 use crate::prelude::*;
 
 pub fn update(app: &mut AppState) -> Result<()> {
@@ -14,14 +14,21 @@ pub fn update(app: &mut AppState) -> Result<()> {
 
     let key_event = key_event.unwrap();
 
-    if quit(&key_event) {
-        app.quit();
-    }
+    match app.active_screen {
+        Screen::Main => {
+            if quit(&key_event) {
+                app.quit();
+            }
 
-    misspelling_selection(&key_event, app);
-    suggestion_selection(&key_event, app);
-    accept_suggestion(&key_event, app);
-    save_file(&key_event, app)?;
+            misspelling_selection(&key_event, app);
+            suggestion_selection(&key_event, app);
+            accept_suggestion(&key_event, app);
+            save_file(&key_event, app)?;
+        }
+        Screen::Quit => {
+            quit_screen_input(&key_event, app)?;
+        }
+    }
 
     Ok(())
 }
@@ -79,6 +86,20 @@ fn save_file(key_event: &KeyEvent, app: &mut AppState) -> Result<()> {
         && key_event.modifiers.is_empty()
     {
         app.save_file()?;
+    }
+    Ok(())
+}
+
+fn quit_screen_input(key_event: &KeyEvent, app: &mut AppState) -> Result<()> {
+    match key_event.code {
+        KeyCode::Char(c) if c == 'y' || c == 'Y' => {
+            app.save_file()?;
+            app.quit();
+        }
+        KeyCode::Char(c) if c == 'n' || c == 'N' => {
+            app.quit();
+        }
+        _ => {}
     }
     Ok(())
 }
