@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use crate::app_state::{AppState, Screen};
 use crate::spellchecker::Misspelling;
 
@@ -9,8 +11,23 @@ use ratatui::widgets::block::Title;
 use ratatui::widgets::{Block, Borders, Clear, List, ListItem, ListState, Paragraph};
 use ratatui::Frame;
 
+const KEYMAP_BAR_TEXT: &'static str =
+    "Tab/S-Tab: next/prev misspelling   j/k: next/prev suggestion   q: quit   s: save";
+
 pub fn render(frame: &mut Frame, app: &mut AppState) {
-    let layout_fields = create_layout().split(frame.size());
+    let layout_fields: Rc<[Rect]> = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([Constraint::Percentage(100), Constraint::Min(1)])
+        .split(frame.size());
+    let bottom_bar: Rect = layout_fields[1]; // The Rect for the bottom bar, containing a list of the
+                                             // programs keymaps
+
+    frame.render_widget(
+        Paragraph::new(KEYMAP_BAR_TEXT).style(Style::default().fg(Color::Blue)),
+        bottom_bar,
+    );
+
+    let layout_fields = create_layout().split(layout_fields[0]);
 
     frame.render_widget(
         create_spellchecked_text(
