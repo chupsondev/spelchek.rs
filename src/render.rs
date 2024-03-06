@@ -11,7 +11,7 @@ use ratatui::widgets::block::Title;
 use ratatui::widgets::{Block, Borders, Clear, List, ListItem, ListState, Paragraph};
 use ratatui::Frame;
 
-const KEYMAP_BAR_TEXT: &'static str =
+const KEYMAP_BAR_TEXT: &str =
     "Tab/S-Tab: next/prev misspelling   j/k: next/prev suggestion   q: quit   s: save";
 
 pub fn render(frame: &mut Frame, app: &mut AppState) {
