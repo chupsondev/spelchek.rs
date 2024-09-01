@@ -6,7 +6,6 @@ use crate::spellchecker::{Misspelling, Spellchecker};
 use std::fs::File;
 use std::io::Write;
 use std::{fs, fs::canonicalize, path::PathBuf};
-use std::{u8, usize};
 
 #[derive(Debug)]
 /// Indicates the different screens that the app has. Those include the `Main` screen, where
